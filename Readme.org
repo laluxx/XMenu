@@ -1,0 +1,25 @@
+#+TITLE: xmenu
+#+STARTUP: align fold hidestars
+
+* Introduction
+**xmenu** is a context menu designed for Xorg. It's intended to be a lightweight and versatile menu system that can work with any window manager.
+
+* Dynamic Theming with wal
+One of the standout features of xmenu is its dynamic theming. The menu automatically adapts its colors from the cached colors of `wal`. This ensures a consistent look across your system if you're already using `wal` for theming.
+
+* Installation
+First, clone the repository and navigate to its directory:
+#+BEGIN_SRC bash
+git clone <Your Repository URL>
+cd xmenu
+#+END_SRC
+
+Next, setup by copying the included `xmenu` directory to your `~/.config`:
+#+BEGIN_SRC bash
+cp -r .config/xmenu ~/.config/
+#+END_SRC
+
+* Overview
+- **main.c**: The core that detects right-clicks and invokes `menu.py`. It's lightweight and doesn't rely on GTK.
+- **menu.py**: Python script for displaying the context menu.
+- **conf**: Configuration file.
