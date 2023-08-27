@@ -10,7 +10,7 @@ One of the standout features of xmenu is its dynamic theming. The menu automatic
 * Installation
 First, clone the repository and navigate to its directory:
 #+BEGIN_SRC bash
-git clone <Your Repository URL>
+git clone https://github.com/laluxx/xmenu.git
 cd xmenu
 #+END_SRC
 
