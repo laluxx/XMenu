@@ -1,10 +1,32 @@
 #include <gtk/gtk.h>
 #include <glib.h>
 #include <glib/gprintf.h>
+#include <gio/gio.h>
 
 // Default values
 gchar *bar_position = "top";
 gint bar_size = 24;
+
+// File monitor related variables
+GFileMonitor *config_monitor = NULL;
+GFileMonitor *menu_monitor = NULL;
+
+void read_config();
+
+// Callback function when the config file is changed
+static void on_config_changed(GFileMonitor *monitor, GFile *file, GFile *other_file, GFileMonitorEvent event_type, gpointer user_data) {
+    if (event_type == G_FILE_MONITOR_EVENT_CHANGES_DONE_HINT) {
+        g_printf("Config file changed, reloading...\n");
+        read_config();
+    }
+}
+
+// Callback function when the menu.py file is changed
+static void on_menu_changed(GFileMonitor *monitor, GFile *file, GFile *other_file, GFileMonitorEvent event_type, gpointer user_data) {
+    if (event_type == G_FILE_MONITOR_EVENT_CHANGES_DONE_HINT) {
+        g_printf("Menu script changed.\n");
+    }
+}
 
 void read_config() {
     gchar *config_path = g_strdup_printf("%s/.config/xmenu/conf", g_get_home_dir());
@@ -80,10 +102,23 @@ static void activate(GtkApplication* app, gpointer user_data) {
 int main(int argc, char **argv) {
     read_config();
 
+    // Setup file monitoring
+    gchar *config_path = g_strdup_printf("%s/.config/xmenu/conf", g_get_home_dir());
+    GFile *config_file = g_file_new_for_path(config_path);
+    config_monitor = g_file_monitor_file(config_file, G_FILE_MONITOR_NONE, NULL, NULL);
+    g_signal_connect(config_monitor, "changed", G_CALLBACK(on_config_changed), NULL);
+
+    gchar *menu_path = g_strdup_printf("%s/.config/xmenu/menu.py", g_get_home_dir());
+    GFile *menu_file = g_file_new_for_path(menu_path);
+    menu_monitor = g_file_monitor_file(menu_file, G_FILE_MONITOR_NONE, NULL, NULL);
+    g_signal_connect(menu_monitor, "changed", G_CALLBACK(on_menu_changed), NULL);
+
     GtkApplication* app = gtk_application_new("org.example.Xmenu", G_APPLICATION_DEFAULT_FLAGS);
     g_signal_connect(app, "activate", G_CALLBACK(activate), NULL);
     int status = g_application_run(G_APPLICATION(app), argc, argv);
     g_object_unref(app);
+    g_object_unref(config_monitor);
+    g_object_unref(menu_monitor);
 
     return status;
 }
@@ -97,10 +132,10 @@ int main(int argc, char **argv) {
 
 
 
+// BASE
 // #include <gtk/gtk.h>
 // #include <glib.h>
 // #include <glib/gprintf.h>
-// #include <stdlib.h>
 //
 // // Default values
 // gchar *bar_position = "top";
@@ -139,6 +174,7 @@ int main(int argc, char **argv) {
 //         gchar *command = g_strdup_printf("python3 %s/.config/xmenu/menu.py", g_get_home_dir());
 //         system(command);
 //         g_free(command);
+//         return TRUE; // Stop propagation
 //     }
 //     return FALSE; // Continue propagation
 // }
@@ -169,7 +205,7 @@ int main(int argc, char **argv) {
 //     gtk_widget_set_app_paintable(w, TRUE);
 //     gtk_widget_set_visual(w, gdk_screen_get_rgba_visual(gdk_screen_get_default()));
 //
-//     // Connect the button press signal to our handler function
+//     // Connect the button press event
 //     g_signal_connect(w, "button-press-event", G_CALLBACK(on_button_press), NULL);
 //
 //     // Show all window content
@@ -186,3 +222,6 @@ int main(int argc, char **argv) {
 //
 //     return status;
 // }
+
+
+
